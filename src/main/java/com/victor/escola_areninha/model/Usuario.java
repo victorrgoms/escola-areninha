@@ -43,10 +43,9 @@ public class Usuario implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        if (this.tipoUsuario == TipoUsuario.ADMIN) {
-            return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"), new SimpleGrantedAuthority("ROLE_USER"));
-        }
-        return List.of(new SimpleGrantedAuthority("ROLE_USER"));
+        // o spring security exige o prefixo ROLE_ pra casar com o hasAnyRole do controller
+        // assim pega direto do enum e ja monta ROLE_MONITOR, ROLE_ADMIN, etc
+        return List.of(new SimpleGrantedAuthority("ROLE_" + this.tipoUsuario.name()));
     }
 
     @Override
