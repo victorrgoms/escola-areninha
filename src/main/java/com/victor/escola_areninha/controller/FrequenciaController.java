@@ -57,19 +57,31 @@ public class FrequenciaController {
         return ResponseEntity.ok("Frequencia salva com sucesso");
     }
 
-    @GetMapping("/{id}/pdf")
+    @PostMapping("/relatorio-mensal/gerar")
     @PreAuthorize("hasAnyRole('MONITOR', 'SUPERVISOR', 'ADMIN')")
-    public ResponseEntity<byte[]> baixarPdf(@PathVariable Long id) {
+    public ResponseEntity<byte[]> gerarRelatorioMensal(
+            @RequestBody com.victor.escola_areninha.dto.DadosRelatorioMensalDTO dados,
+            Principal principal) {
 
-        var frequencia = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Frequencia não encontrada"));
+        var email = principal.getName();
+        var monitor = usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-        byte[] arquivoPdf = pdfService.gerarPdfFrequencia(frequencia);
+        var frequenciasDoMes = repository.findAll().stream()
+                .filter(f -> f.getResponsavel().getId().equals(monitor.getId()))
+                .filter(f -> f.getData().getMonthValue() == dados.mes() && f.getData().getYear() == dados.ano())
+                .toList();
 
-        // mexe nos headers pra avisar o navegador q isso eh um arquivo pra baixar
+        if (frequenciasDoMes.isEmpty()) {
+            throw new RuntimeException("Nenhuma frequência encontrada para este mês.");
+        }
+
+        // Agora passamos o DTO inteiro pro Service resolver a mágica
+        byte[] arquivoPdf = pdfService.gerarRelatorioMensal(frequenciasDoMes, monitor, dados);
+
         return ResponseEntity.ok()
                 .header(org.springframework.http.HttpHeaders.CONTENT_TYPE, "application/pdf")
-                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"frequencia_" + id + ".pdf\"")
+                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"relatorio_" + dados.mes() + "_" + dados.ano() + ".pdf\"")
                 .body(arquivoPdf);
     }
 }
