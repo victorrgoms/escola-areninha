@@ -1,15 +1,15 @@
 package com.victor.escola_areninha.controller;
 
 import com.victor.escola_areninha.dto.DadosCadastroUsuarioDTO;
+import com.victor.escola_areninha.dto.DadosListagemEquipeDTO;
 import com.victor.escola_areninha.model.Usuario;
 import com.victor.escola_areninha.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/usuarios")
@@ -40,5 +40,17 @@ public class UsuarioController {
         repository.save(novoUsuario);
 
         return ResponseEntity.ok("usuario criado!");
+    }
+
+    @GetMapping("/equipe/{areninhaId}")
+    // qualquer pessoa com a app instalada pode ver isto, nao leva preauthorize
+    public ResponseEntity<List<DadosListagemEquipeDTO>> listarEquipeDaAreninha(@PathVariable Long areninhaId) {
+
+        // vai ao banco buscar o pessoal e converte logo pro dto
+        var equipa = repository.findByAreninhaId(areninhaId).stream()
+                .map(DadosListagemEquipeDTO::new)
+                .toList();
+
+        return ResponseEntity.ok(equipa);
     }
 }
