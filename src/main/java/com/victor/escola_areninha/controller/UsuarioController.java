@@ -3,12 +3,14 @@ package com.victor.escola_areninha.controller;
 import com.victor.escola_areninha.dto.DadosCadastroUsuarioDTO;
 import com.victor.escola_areninha.dto.DadosListagemEquipeDTO;
 import com.victor.escola_areninha.model.Usuario;
+import com.victor.escola_areninha.repository.AreninhaRepository;
 import com.victor.escola_areninha.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -19,11 +21,13 @@ public class UsuarioController {
     private UsuarioRepository repository;
 
     @Autowired
+    private AreninhaRepository areninhaRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @PostMapping("/cadastrar")
     public ResponseEntity<String> cadastrar(@RequestBody DadosCadastroUsuarioDTO dados) {
-        // confere se ja tem alguem com esse email pra nao dar erro de constraint
         if (repository.findByEmail(dados.email()).isPresent()) {
             return ResponseEntity.badRequest().body("email ja ta em uso mano");
         }
@@ -31,15 +35,20 @@ public class UsuarioController {
         Usuario novoUsuario = new Usuario();
         novoUsuario.setNome(dados.nome());
         novoUsuario.setEmail(dados.email());
-
-        // joga a senha no bcrypt antes de salvar
         novoUsuario.setSenha(passwordEncoder.encode(dados.senha()));
-
         novoUsuario.setTipoUsuario(dados.tipoUsuario());
+        novoUsuario.setTurnoLotado(dados.turnoLotado());
+
+        // Busca a areninha no banco e vincula ao usuário
+        if (dados.areninhaId() != null) {
+            var areninha = areninhaRepository.findById(dados.areninhaId())
+                    .orElseThrow(() -> new RuntimeException("Areninha não encontrada"));
+            novoUsuario.setAreninha(areninha);
+        }
 
         repository.save(novoUsuario);
 
-        return ResponseEntity.ok("usuario criado!");
+        return ResponseEntity.ok("Usuario criado!");
     }
 
     @GetMapping("/equipe/{areninhaId}")
@@ -52,5 +61,10 @@ public class UsuarioController {
                 .toList();
 
         return ResponseEntity.ok(equipa);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<Usuario> dadosDoUsuarioLogado(Principal principal) {
+        return ResponseEntity.ok(repository.findByEmail(principal.getName()).get());
     }
 }

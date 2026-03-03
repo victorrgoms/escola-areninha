@@ -25,22 +25,22 @@ public class SecurityFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-
         var tokenJWT = recuperarToken(request);
 
+        // so tenta validar e autenticar se o token realmente veio na requisicao
         if (tokenJWT != null) {
-            // se chegou ate aqui, o cara mandou o token. agora extrair o email
-            var subject = tokenService.getSubject(tokenJWT);
-            var usuario = repository.findByEmail(subject).orElseThrow();
-
-            // cria o objeto de autenticacao que o spring entende
-            var authentication = new UsernamePasswordAuthenticationToken(usuario, null, usuario.getAuthorities());
-
-            // forca a autenticacao no contexto dessa requisicao
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+            try {
+                var subject = tokenService.getSubject(tokenJWT);
+                var usuario = repository.findByEmail(subject).get();
+                var authentication = new UsernamePasswordAuthenticationToken(usuario, null, usuario.getAuthorities());
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            } catch (Exception e) {
+                // se o token veio lixado ou expirado a gnt barra por aqui msm
+                throw new RuntimeException("Token JWT inválido ou expirado!");
+            }
         }
 
-        // segue o fluxo normal da aplicacao
+        // se o token for nulo, segue o baile. o SecurityConfigurations q vai decidir se a rota precisava de token ou nao
         filterChain.doFilter(request, response);
     }
 
