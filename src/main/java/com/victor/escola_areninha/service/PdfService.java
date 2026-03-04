@@ -19,6 +19,7 @@ import java.time.format.TextStyle;
 import java.util.List;
 import java.util.Locale;
 
+
 @Service
 public class PdfService {
 
@@ -48,7 +49,7 @@ public class PdfService {
             p1.setAlignment(Element.ALIGN_CENTER);
             document.add(p1);
 
-            Paragraph p2 = new Paragraph("CONVÊNIO 2025", fontCabecalho);
+            Paragraph p2 = new Paragraph("CONVÊNIO 2026", fontCabecalho);
             p2.setAlignment(Element.ALIGN_CENTER);
             document.add(p2);
             document.add(Chunk.NEWLINE);
@@ -84,7 +85,7 @@ public class PdfService {
             cellMes.setPadding(5);
             infoTable.addCell(cellMes);
 
-            PdfPCell cellTurno = new PdfPCell(new Paragraph("TURNOS: " + config.turno(), fontNormal));
+            PdfPCell cellTurno = new PdfPCell(new Paragraph("TURNO: " + config.turno(), fontNormal));
             cellTurno.setPadding(5);
             infoTable.addCell(cellTurno);
 
@@ -113,10 +114,16 @@ public class PdfService {
             Image imgAssinatura = null;
             if (config.assinaturaUrl() != null && !config.assinaturaUrl().isEmpty()) {
                 try {
-                    imgAssinatura = Image.getInstance(new URL(config.assinaturaUrl()));
-                    imgAssinatura.scaleToFit(60, 25);
+                    // Decodifica a string Base64 que veio do React Native para bytes
+                    byte[] imageBytes = java.util.Base64.getDecoder().decode(config.assinaturaUrl());
+
+                    // Cria a imagem a partir dos bytes
+                    imgAssinatura = Image.getInstance(imageBytes);
+
+                    // Aumentei um pouquinho o scaleToFit pra assinatura ficar mais visível na tabela
+                    imgAssinatura.scaleToFit(80, 30);
                 } catch (Exception e) {
-                    System.out.println("Erro ao carregar imagem da assinatura.");
+                    System.out.println("Erro ao carregar imagem da assinatura (falha no Base64): " + e.getMessage());
                 }
             }
 

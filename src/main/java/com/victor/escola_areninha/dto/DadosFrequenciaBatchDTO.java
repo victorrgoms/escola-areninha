@@ -7,5 +7,6 @@ public record DadosFrequenciaBatchDTO(
         String atividade,
         Integer alunosPresentes,
         Long areninhaId,
-        String turno
+        String turno,
+        String horario
 ) {}

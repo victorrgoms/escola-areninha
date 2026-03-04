@@ -58,7 +58,6 @@ public class FrequenciaController {
         return ResponseEntity.ok("Frequencia salva com sucesso");
     }
 
-    // NOVO ENDPOINT: Recebe a lista do App, salva no banco e gera o PDF de uma vez
     @PostMapping("/relatorio")
     @PreAuthorize("hasAnyRole('MONITOR', 'SUPERVISOR', 'ADMIN')")
     public ResponseEntity<byte[]> gerarRelatorioDaLista(@RequestBody RelatorioPayloadDTO payload, Principal principal) {
@@ -70,37 +69,42 @@ public class FrequenciaController {
         List<Frequencia> frequenciasSalvas = new ArrayList<>();
 
         for (DadosFrequenciaBatchDTO dto : payload.frequencias()) {
-            var areninha = areninhaRepository.findById(dto.areninhaId())
-                    .orElseThrow(() -> new RuntimeException("Areninha não encontrada"));
-
             var freq = new Frequencia();
-            // Converte a string "DD/MM/AAAA" que vem do celular para o LocalDate do Java
             freq.setData(LocalDate.parse(dto.data(), formatter));
             freq.setAtividade(dto.atividade());
-            freq.setResponsavel(monitor);
-            freq.setAreninha(areninha);
 
-            // Salva cada frequência no banco para manter o histórico
+            // desce pro banco com a hora exata que o monitor preencheu na tela
+            freq.setHorario(dto.horario());
+
+            freq.setResponsavel(monitor);
+            freq.setAreninha(monitor.getAreninha());
+
             frequenciasSalvas.add(repository.save(freq));
         }
 
         int mes = frequenciasSalvas.get(0).getData().getMonthValue();
         int ano = frequenciasSalvas.get(0).getData().getYear();
 
-        // passa o mes e ano reais, e preenche o resto com vazio/zero so pro java deixar compilar
-        // o pdf service se vira pra pegar o resto dos dados das entidades
+        // puxa o turno da primeira aula do lote pra garantir que o cabecalho fique com o turno real (Manha/Tarde)
+        String turnoDoRelatorio = payload.frequencias().get(0).turno();
+
+        int aulas6 = payload.totais().getOrDefault("6º Ano", 0);
+        int aulas7 = payload.totais().getOrDefault("7º Ano", 0);
+        int aulas8 = payload.totais().getOrDefault("8º Ano", 0);
+        int aulas9 = payload.totais().getOrDefault("9º Ano", 0);
+
         var dadosRelatorio = new DadosRelatorioMensalDTO(
                 mes,
                 ano,
-                "",
-                "",
-                "",
-                "",
-                "",
-                0,
-                0,
-                0,
-                0
+                "6º ao 9º Ano",
+                turnoDoRelatorio, // enviando o turno dinamico pro gerador de pdf
+                payload.assinaturaBase64(),
+                "Esporte e Cidadania",
+                "Coordenador do Projeto",
+                aulas6,
+                aulas7,
+                aulas8,
+                aulas9
         );
 
         byte[] arquivoPdf = pdfService.gerarRelatorioMensal(frequenciasSalvas, monitor, dadosRelatorio);
