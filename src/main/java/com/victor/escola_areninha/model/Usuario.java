@@ -29,7 +29,6 @@ public class Usuario implements UserDetails {
 
     private String senha;
 
-    // forca a salvar como string lá no banco em vez de numero (0, 1, 2)
     @Enumerated(EnumType.STRING)
     private TipoUsuario tipoUsuario;
 
@@ -43,6 +42,15 @@ public class Usuario implements UserDetails {
     @JoinColumn(name = "areninha_id")
     private Areninha areninha;
 
+    // Se apagar apaga também as fotos dele"
+    @OneToMany(mappedBy = "usuario", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Imagem> fotos;
+
+    // Se apagar este apaga os registos de frequência que ele fez
+    @OneToMany(mappedBy = "responsavel", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Frequencia> frequencias;
+
+    // -------------------------------------------------------
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -56,7 +64,7 @@ public class Usuario implements UserDetails {
 
     @Override
     public String getUsername() {
-        return email; // a gente usa o email como username pro login
+        return email;
     }
 
     @Override

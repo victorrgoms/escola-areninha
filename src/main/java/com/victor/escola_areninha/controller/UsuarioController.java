@@ -7,6 +7,7 @@ import com.victor.escola_areninha.repository.AreninhaRepository;
 import com.victor.escola_areninha.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,8 +42,6 @@ public class UsuarioController {
         novoUsuario.setAreaConhecimento(dados.areaConhecimento());
 
         // Busca a areninha no banco e vincula ao usuário
-
-        // Busca a areninha no banco e vincula ao usuário
         if (dados.areninhaId() != null) {
             var areninha = areninhaRepository.findById(dados.areninhaId())
                     .orElseThrow(() -> new RuntimeException("Areninha não encontrada"));
@@ -69,5 +68,18 @@ public class UsuarioController {
     @GetMapping("/me")
     public ResponseEntity<Usuario> dadosDoUsuarioLogado(Principal principal) {
         return ResponseEntity.ok(repository.findByEmail(principal.getName()).get());
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<String> deletarUsuario(@PathVariable Long id) {
+        // Verifica se o usuario existe antes de tentar apagar
+        if (!repository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        repository.deleteById(id);
+
+        return ResponseEntity.ok("Usuario deletado com sucesso!");
     }
 }
