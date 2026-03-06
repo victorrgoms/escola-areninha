@@ -36,6 +36,9 @@ public class Usuario implements UserDetails {
     @Column(name = "turno_lotado")
     private String turnoLotado;
 
+    @Column(name = "area_conhecimento")
+    private String areaConhecimento;
+
     @ManyToOne
     @JoinColumn(name = "areninha_id")
     private Areninha areninha;

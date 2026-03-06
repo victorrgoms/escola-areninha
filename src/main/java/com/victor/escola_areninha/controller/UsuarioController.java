@@ -38,6 +38,9 @@ public class UsuarioController {
         novoUsuario.setSenha(passwordEncoder.encode(dados.senha()));
         novoUsuario.setTipoUsuario(dados.tipoUsuario());
         novoUsuario.setTurnoLotado(dados.turnoLotado());
+        novoUsuario.setAreaConhecimento(dados.areaConhecimento());
+
+        // Busca a areninha no banco e vincula ao usuário
 
         // Busca a areninha no banco e vincula ao usuário
         if (dados.areninhaId() != null) {

@@ -8,5 +8,6 @@ public record DadosCadastroUsuarioDTO(
         String senha,
         TipoUsuario tipoUsuario,
         String turnoLotado,
-        Long areninhaId
+        Long areninhaId,
+        String areaConhecimento
 ) {}
