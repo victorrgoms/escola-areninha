@@ -17,7 +17,7 @@ public class Imagem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // link salvo na nuvem
+    @Column(columnDefinition = "TEXT")
     private String url;
 
     @Column(columnDefinition = "TEXT")
@@ -26,7 +26,6 @@ public class Imagem {
     @Column(name = "data_upload")
     private LocalDateTime dataUpload;
 
-    // quem fez o post
     @ManyToOne
     @JoinColumn(name = "usuario_id")
     private Usuario usuario;
@@ -34,4 +33,9 @@ public class Imagem {
     @ManyToOne
     @JoinColumn(name = "areninha_id")
     private Areninha areninha;
+
+    @PrePersist
+    public void prePersist() {
+        this.dataUpload = LocalDateTime.now();
+    }
 }

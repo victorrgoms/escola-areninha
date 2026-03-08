@@ -1,7 +1,7 @@
+// src/main/java/com/victor/escola_areninha/dto/DadosCadastroImagemDTO.java
 package com.victor.escola_areninha.dto;
 
 public record DadosCadastroImagemDTO(
-        String url,
-        String descricao,
-        Long areninhaId
+        String base64,
+        String descricao
 ) {}
