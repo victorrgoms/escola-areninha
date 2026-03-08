@@ -5,7 +5,6 @@ public record DadosFrequenciaBatchDTO(
         String data,
         String turma,
         String atividade,
-        Integer alunosPresentes,
         Long areninhaId,
         String turno,
         String horario

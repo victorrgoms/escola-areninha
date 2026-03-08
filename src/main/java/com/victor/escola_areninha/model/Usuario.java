@@ -46,7 +46,7 @@ public class Usuario implements UserDetails {
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Imagem> fotos;
 
-    // Se apagar este apaga os registos de frequência que ele fez
+    // Se apagar este apaga os registos de frequência que ele fez 
     @OneToMany(mappedBy = "responsavel", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Frequencia> frequencias;
 

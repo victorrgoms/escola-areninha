@@ -37,6 +37,9 @@ public class SecurityConfig {
                     // 1. Libera as rotas de login
                     req.requestMatchers(HttpMethod.POST, "/login", "/api/login", "/auth/login").permitAll();
 
+                    // LIBERA A ROTA DE ERROS DO SPRING (Adicione esta linha!)
+                    req.requestMatchers("/error").permitAll();
+
                     // 2. Libera o cadastro
                     req.requestMatchers(HttpMethod.POST, "/api/usuarios/cadastrar").permitAll();
 

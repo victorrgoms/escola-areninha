@@ -10,7 +10,3 @@ INSERT INTO areninha (nome, endereco, latitude, longitude) VALUES ('Areninha Ben
 INSERT INTO areninha (nome, endereco, latitude, longitude) VALUES ('Areninha Parangaba', 'Av. Osório de Paiva, s/n - Parangaba, Fortaleza - CE', -3.7722, -38.5660);
 INSERT INTO areninha (nome, endereco, latitude, longitude) VALUES ('Areninha Valdir Bezerra', 'Av. Paulino Rocha, 1343 - Cajazeiras, Fortaleza - CE', -3.8102, -38.5113);
 INSERT INTO areninha (nome, endereco, latitude, longitude) VALUES ('Areninha Alvorada', 'Av. Conselheiro Gomes de Freitas, s/n - Sapiranga, Fortaleza - CE, 60833-104', -3.7898, -38.4558);
-
--- Criando seu usuário admin pra você poder deletar o pessoal pelo postman sem dor de cabeça
--- A senha aqui é '123' já criptografada em BCrypt
-INSERT INTO usuario (nome, email, senha, tipo_usuario, turno_lotado, area_conhecimento, areninha_id) VALUES ('Victor Admin', 'admin@areninha.com', '$2a$10$76/yO/gJ6DInB8X.f6hT6.wO8mB5zN.vJjC2Y7S2qFv7Kj8r/Y2L.', 'ADMIN', 'Ambos', 'Gestão', 1);
