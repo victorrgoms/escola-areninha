@@ -33,4 +33,6 @@ public class Frequencia {
     // link do pdf dps de gerado
     @Column(name = "pdf_url")
     private String pdfUrl;
+
+    private String turno;
 }

@@ -39,23 +39,49 @@ public class FrequenciaController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('MONITOR', 'SUPERVISOR', 'ADMIN')")
-    public ResponseEntity<String> registrar(@RequestBody DadosCadastroFrequenciaDTO dados, Principal principal) {
+    public ResponseEntity<Frequencia> registrar(@RequestBody DadosCadastroFrequenciaDTO dados, Principal principal) {
+        // Descobre quem é o monitor pelo Token
         var responsavel = usuarioRepository.findByEmail(principal.getName())
                 .orElseThrow(() -> new RuntimeException("Usuario logado nao encontrado no banco"));
-
-        var areninha = areninhaRepository.findById(dados.areninhaId())
-                .orElseThrow(() -> new RuntimeException("Areninha informada nao existe"));
 
         var frequencia = new Frequencia();
         frequencia.setData(dados.data());
         frequencia.setAtividade(dados.atividade());
         frequencia.setHorario(dados.horario());
-        frequencia.setAreninha(areninha);
         frequencia.setResponsavel(responsavel);
         frequencia.setPdfUrl(null);
+        frequencia.setTurno(dados.turno());
 
-        repository.save(frequencia);
-        return ResponseEntity.ok("Frequencia salva com sucesso");
+        // Pega a areninha vinculada ao perfil do monitor!
+        frequencia.setAreninha(responsavel.getAreninha());
+
+        // Salva e devolve o objeto completo (com ID gerado) pro celular
+        var frequenciaSalva = repository.save(frequencia);
+        return ResponseEntity.ok(frequenciaSalva);
+    }
+
+    @GetMapping
+    @PreAuthorize("hasAnyRole('MONITOR', 'SUPERVISOR', 'ADMIN')")
+    public ResponseEntity<List<Frequencia>> listarHistorico(
+            @RequestParam(required = false) Integer mes,
+            @RequestParam(required = false) Integer ano,
+            Principal principal) {
+
+        var responsavel = usuarioRepository.findByEmail(principal.getName())
+                .orElseThrow(() -> new RuntimeException("Usuario não encontrado"));
+
+        // se o front n mandar nada, usa a data de hoje
+        int m = (mes != null) ? mes : LocalDate.now().getMonthValue();
+        int a = (ano != null) ? ano : LocalDate.now().getYear();
+
+        // pega do dia 1 ate o ultimo dia do mes
+        LocalDate inicioMes = LocalDate.of(a, m, 1);
+        LocalDate fimMes = inicioMes.withDayOfMonth(inicioMes.lengthOfMonth());
+
+        var historico = repository.findByResponsavelIdAndDataBetweenOrderByDataDesc(
+                responsavel.getId(), inicioMes, fimMes);
+
+        return ResponseEntity.ok(historico);
     }
 
     @PostMapping("/relatorio")
@@ -113,5 +139,14 @@ public class FrequenciaController {
                 .header(HttpHeaders.CONTENT_TYPE, "application/pdf")
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"relatorio_areninha.pdf\"")
                 .body(arquivoPdf);
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('MONITOR', 'SUPERVISOR', 'ADMIN')")
+    public ResponseEntity<Void> apagarFrequencia(@PathVariable Long id) {
+        if (repository.existsById(id)) {
+            repository.deleteById(id);
+        }
+        return ResponseEntity.noContent().build();
     }
 }

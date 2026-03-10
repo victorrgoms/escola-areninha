@@ -6,5 +6,6 @@ public record DadosCadastroFrequenciaDTO(
         LocalDate data,
         String atividade,
         String horario,
-        Long areninhaId
+        Long areninhaId,
+        String turno
 ) {}

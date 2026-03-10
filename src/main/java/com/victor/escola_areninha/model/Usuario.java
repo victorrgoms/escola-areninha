@@ -1,5 +1,6 @@
 package com.victor.escola_areninha.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -43,10 +44,12 @@ public class Usuario implements UserDetails {
     private Areninha areninha;
 
     // Se apagar apaga também as fotos dele"
+    @JsonIgnore
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Imagem> fotos;
 
-    // Se apagar este apaga os registos de frequência que ele fez 
+    // Se apagar este apaga os registos de frequência que ele fez
+    @JsonIgnore
     @OneToMany(mappedBy = "responsavel", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Frequencia> frequencias;
 
