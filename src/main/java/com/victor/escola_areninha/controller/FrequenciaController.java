@@ -91,28 +91,25 @@ public class FrequenciaController {
         var monitor = usuarioRepository.findByEmail(principal.getName())
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        List<Frequencia> frequenciasSalvas = new ArrayList<>();
+        List<Frequencia> frequenciasParaPdf = new ArrayList<>();
 
-        for (DadosFrequenciaBatchDTO dto : payload.frequencias()) {
+        for (var dto : payload.frequencias()) {
             var freq = new Frequencia();
-            freq.setData(LocalDate.parse(dto.data(), formatter));
+            // Lemos a data direto no formato padrão (YYYY-MM-DD)
+            freq.setData(LocalDate.parse(dto.data()));
             freq.setAtividade(dto.atividade());
-
-            // desce pro banco com a hora exata que o monitor preencheu na tela
             freq.setHorario(dto.horario());
-
+            freq.setTurno(dto.turno());
             freq.setResponsavel(monitor);
             freq.setAreninha(monitor.getAreninha());
 
-            frequenciasSalvas.add(repository.save(freq));
+            // Apenas adicionamos à lista do PDF, NÃO salvamos no banco novamente!
+            frequenciasParaPdf.add(freq);
         }
 
-        int mes = frequenciasSalvas.get(0).getData().getMonthValue();
-        int ano = frequenciasSalvas.get(0).getData().getYear();
-
-        // puxa o turno da primeira aula do lote pra garantir que o cabecalho fique com o turno real (Manha/Tarde)
-        String turnoDoRelatorio = payload.frequencias().get(0).turno();
+        int mes = frequenciasParaPdf.get(0).getData().getMonthValue();
+        int ano = frequenciasParaPdf.get(0).getData().getYear();
+        String turnoDoRelatorio = frequenciasParaPdf.get(0).getTurno();
 
         int aulas6 = payload.totais().getOrDefault("6º Ano", 0);
         int aulas7 = payload.totais().getOrDefault("7º Ano", 0);
@@ -120,25 +117,31 @@ public class FrequenciaController {
         int aulas9 = payload.totais().getOrDefault("9º Ano", 0);
 
         var dadosRelatorio = new DadosRelatorioMensalDTO(
-                mes,
-                ano,
-                "6º ao 9º Ano",
-                turnoDoRelatorio, // enviando o turno dinamico pro gerador de pdf
-                payload.assinaturaBase64(),
-                "Esporte e Cidadania",
-                "Coordenador do Projeto",
-                aulas6,
-                aulas7,
-                aulas8,
-                aulas9
+                mes, ano, "6º ao 9º Ano", turnoDoRelatorio,
+                payload.assinaturaBase64(), "Esporte e Cidadania",
+                "Coordenador do Projeto", aulas6, aulas7, aulas8, aulas9
         );
 
-        byte[] arquivoPdf = pdfService.gerarRelatorioMensal(frequenciasSalvas, monitor, dadosRelatorio);
+        byte[] arquivoPdf = pdfService.gerarRelatorioMensal(frequenciasParaPdf, monitor, dadosRelatorio);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_TYPE, "application/pdf")
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"relatorio_areninha.pdf\"")
                 .body(arquivoPdf);
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('MONITOR', 'SUPERVISOR', 'ADMIN')")
+    public ResponseEntity<Frequencia> editarFrequencia(@PathVariable Long id, @RequestBody DadosCadastroFrequenciaDTO dados) {
+        var frequencia = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Aula não encontrada"));
+
+        frequencia.setData(dados.data()); // Pode ser LocalDate.parse(dados.data()) se reclamar de tipo
+        frequencia.setAtividade(dados.atividade());
+        frequencia.setHorario(dados.horario());
+        frequencia.setTurno(dados.turno());
+
+        return ResponseEntity.ok(repository.save(frequencia));
     }
 
     @DeleteMapping("/{id}")
