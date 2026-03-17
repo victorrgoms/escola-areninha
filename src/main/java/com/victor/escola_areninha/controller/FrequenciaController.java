@@ -118,7 +118,7 @@ public class FrequenciaController {
 
         var dadosRelatorio = new DadosRelatorioMensalDTO(
                 mes, ano, "6º ao 9º Ano", turnoDoRelatorio,
-                payload.assinaturaBase64(), "Esporte e Cidadania",
+                payload.assinaturaBase64(), "Esportes",
                 "Coordenador do Projeto", aulas6, aulas7, aulas8, aulas9
         );
 

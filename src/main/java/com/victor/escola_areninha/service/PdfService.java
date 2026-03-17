@@ -216,7 +216,7 @@ public class PdfService {
                 System.out.println("Logo nao encontrada na pasta resources: " + imagePath);
             }
         } catch (Exception e) {
-            System.out.println("Erro pesadão ao carregar a logo: " + imagePath);
+            System.out.println("Erro ao carregar a logo: " + imagePath);
         }
         return cell;
     }
